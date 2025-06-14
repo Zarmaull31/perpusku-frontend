@@ -113,7 +113,7 @@
 
 
 // File: src/pages/LoginPage.jsx (Versi FINAL)
-// File: src/pages/LoginPage.jsx (Versi FINAL-FINAL)
+// File: LoginPage.jsx (Versi FINAL FIX)
 
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
@@ -121,11 +121,11 @@ import toast from 'react-hot-toast';
 import { styled } from '@mui/material/styles';
 import { Container, Typography } from '@mui/material';
 
-// INI DIA PERBAIKANNYA
-import api from '../utils/api'; 
-import { useAuth } from '../hooks/useAuth';
-import Logo from '../components/logo';
-import { LoginForm } from '../sections/auth/login';
+// --- INI DIA PERBAIKAN PATH-NYA ---
+import api from '../../../utils/api'; 
+import { useAuth } from '../../../hooks/useAuth';
+import Logo from '../../../components/logo';
+import LoginForm from './LoginForm'; // Menggunakan path yang lebih eksplisit
 
 const StyledRoot = styled('div')(({ theme }) => ({
   [theme.breakpoints.up('md')]: {
