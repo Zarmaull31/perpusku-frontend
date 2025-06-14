@@ -327,8 +327,7 @@
 
 
 import { Helmet } from "react-helmet-async";
-// import { useEffect, useState } from "react";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react"; // <-- TAMBAHKAN useCallback
 import toast from "react-hot-toast";
 import { Alert } from "@mui/lab";
 import {
@@ -338,7 +337,7 @@ import {
 } from "@mui/material";
 
 import { useAuth } from "../../../hooks/useAuth";
-import api from "../../../utils/api"; // <-- GUNAKAN INI
+import api from "../../../utils/api"; 
 import Iconify from "../../../components/iconify";
 import Scrollbar from "../../../components/scrollbar";
 import BookReturnListHead from "./BookReturnListHead";
@@ -390,7 +389,7 @@ const BookReturnPage = () => {
   useEffect(() => {
     getAllReturns();
   }, [getAllReturns]);
-
+  
   const addReturn = () => {
     api.post('/api/bookReturn/add', returnBook)
       .then(() => {
@@ -421,14 +420,13 @@ const BookReturnPage = () => {
         handleCloseDialog();
         handleCloseMenu();
         getAllReturns();
-
       })
       .catch(() => toast.error("Gagal, silakan coba lagi"));
   };
 
   const getSelectedReturnDetails = () => {
     const selectedReturn = returnBooks.find((element) => element._id === selectedReturnId);
-    setReturn(selectedReturn);
+    if(selectedReturn) setReturn(selectedReturn);
   };
 
   const clearForm = () => setReturn({ bookId: "", memberId: "", dueDate: "", status: "" });
@@ -491,7 +489,6 @@ const BookReturnPage = () => {
           </Card>
         )}
       </Container>
-
       <Popover open={Boolean(isMenuOpen)} anchorEl={isMenuOpen} onClose={handleCloseMenu} anchorOrigin={{ vertical: 'top', horizontal: 'left' }} transformOrigin={{ vertical: 'top', horizontal: 'right' }} PaperProps={{ sx: { p: 1, width: 140, '& .MuiMenuItem-root': { px: 1, typography: 'body2', borderRadius: 0.75, }, }, }}>
         <MenuItem onClick={() => { setIsUpdateForm(true); getSelectedReturnDetails(); handleCloseMenu(); handleOpenModal(); }}>
           <Iconify icon={'eva:edit-fill'} sx={{ mr: 2 }} />Edit
@@ -500,7 +497,6 @@ const BookReturnPage = () => {
           <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />Delete
         </MenuItem>
       </Popover>
-
       <BookReturnForm isUpdateForm={isUpdateForm} isModalOpen={isModalOpen} handleCloseModal={handleCloseModal} id={selectedReturnId} returnBook={returnBook} setReturn={setReturn} handleAddReturn={addReturn} handleUpdateReturn={updateReturn} />
       <BookReturnDialog isDialogOpen={isDialogOpen} returnId={selectedReturnId} handleDeleteReturn={deleteReturn} handleCloseDialog={handleCloseDialog} />
     </>

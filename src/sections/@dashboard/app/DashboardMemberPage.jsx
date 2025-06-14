@@ -130,14 +130,14 @@
 import { Helmet } from "react-helmet-async";
 import { Link as RouterLink } from "react-router-dom";
 import { useEffect, useState } from "react";
-
 import {
   Container, Grid, Typography, Card, CardHeader,
   List, ListItem, ListItemText, ListItemIcon, Button, Box, CircularProgress
 } from "@mui/material";
 
-import api from "../../../utils/api"; // <-- MENGGUNAKAN API TERPUSAT
+// Semua import dari library diletakkan di atas import lokal
 import { useAuth } from "../../../hooks/useAuth";
+import api from "../../../utils/api"; // <-- Import lokal setelah library
 import { AppWidgetSummary } from "./index";
 import Iconify from "../../../components/iconify";
 
@@ -148,7 +148,7 @@ export default function DashboardMemberPage() {
 
   useEffect(() => {
     if (user?._id) {
-      api.get('/api/borrowal/getAll') // <-- MENGGUNAKAN API
+      api.get('/api/borrowal/getAll')
         .then(res => {
           const allBorrowals = res.data.borrowalsList || [];
           const userBorrowals = allBorrowals.filter(borrowal => borrowal.memberId?._id === user._id);
@@ -159,6 +159,8 @@ export default function DashboardMemberPage() {
           console.error("Gagal mengambil data peminjaman pribadi: ", err);
           setIsLoading(false);
         });
+    } else {
+      setIsLoading(false);
     }
   }, [user?._id]);
 
@@ -167,9 +169,9 @@ export default function DashboardMemberPage() {
 
   return (
     <>
-      <Helmet><title> Dashboard Siswa </title></Helmet>
+      <Helmet><title> Dashboard Anggota </title></Helmet>
       <Container maxWidth="xl">
-        <Typography variant="h4" sx={{ mb: 5 }}>Hi {user.name.split(' ')[0]}, Selamat Datang!</Typography>
+        <Typography variant="h4" sx={{ mb: 5 }}>Hi {user?.name?.split(' ')[0]}, Selamat Datang!</Typography>
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6} md={6}>
             <AppWidgetSummary title="Buku Sedang Dipinjam" total={currentlyBorrowed} color="info" icon={'material-symbols:book-outline-rounded'} />
@@ -197,7 +199,7 @@ export default function DashboardMemberPage() {
                 )}
               </Box>
               <Box sx={{ p: 2, textAlign: 'right' }}>
-                <Button component={RouterLink} to="/books" size="small" color="primary" endIcon={<Iconify icon={'eva:arrow-ios-forward-fill'} />}>Lihat Katalog Buku</Button>
+                <Button component={RouterLink} to="/dashboard/books" size="small" color="primary" endIcon={<Iconify icon={'eva:arrow-ios-forward-fill'} />}>Lihat Katalog Buku</Button>
               </Box>
             </Card>
           </Grid>

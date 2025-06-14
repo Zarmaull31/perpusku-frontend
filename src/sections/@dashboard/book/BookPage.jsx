@@ -456,12 +456,12 @@
 import { Helmet } from "react-helmet-async";
 import { useEffect, useState, useCallback } from "react";
 import toast from "react-hot-toast";
+import axios from "axios"; // <-- WAJIB ADA untuk Google Books API
 import {
   Box, Button, Card, CircularProgress, Container, Grid, IconButton,
   MenuItem, Popover, Stack, Typography, TextField, Alert
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import axios from "axios"; // <-- TAMBAHKAN KEMBALI IMPORT INI
 
 import { useAuth } from "../../../hooks/useAuth";
 import api from "../../../utils/api"; 
@@ -471,16 +471,12 @@ import BookForm from "./BookForm";
 import Iconify from "../../../components/iconify";
 
 const StyledBookImage = styled("img")({
-  top: 0,
-  width: "100%",
-  height: "100%",
-  objectFit: "cover",
-  position: "absolute"
+  top: 0, width: "100%", height: "100%",
+  objectFit: "cover", position: "absolute"
 });
 
 const BookPage = () => {
   const { user } = useAuth();
-  // ... (semua state Anda tetap sama)
   const [book, setBook] = useState({ id: "", name: "", isbn: "", summary: "", isAvailable: true, stock: 1, publishYear: "", authorId: "", genreId: "", photoUrl: "", authorName: "", genreName: "" });
   const [books, setBooks] = useState([]);
   const [selectedBookId, setSelectedBookId] = useState(null);
@@ -492,103 +488,60 @@ const BookPage = () => {
   const [googleQuery, setGoogleQuery] = useState("");
   const [googleBooks, setGoogleBooks] = useState([]);
 
-
   const getAllBooks = useCallback(() => {
     setIsTableLoading(true);
     api.get('/api/book/getAll')
-      .then((response) => {
-        setBooks(response.data.booksList);
-        setIsTableLoading(false);
-      })
-      .catch((error) => {
-        console.log(error);
-        setIsTableLoading(false);
-      });
+      .then((response) => { setBooks(response.data.booksList); setIsTableLoading(false); })
+      .catch((error) => { console.log(error); setIsTableLoading(false); });
   }, []);
 
   const addBook = async () => {
     try {
-      if (!book.genreName || !book.authorName) {
-        toast.error("Jenis buku atau nama penulis tidak boleh kosong.");
-        return null; // <-- FIX consistent-return
-      }
-      
+      if (!book.genreName || !book.authorName) return toast.error("Jenis buku atau nama penulis tidak boleh kosong.");
       const authorRes = await api.post("/api/author/findOrCreate", { name: book.authorName.trim() });
       const genreRes = await api.post("/api/genre/findOrCreate", { name: book.genreName.trim() });
-
-      const newBook = { ...book, authorId: authorRes.data.author._id, genreId: genreRes.data.genre._id };
-      
-      await api.post('/api/book/add', newBook);
+      const newBookData = { ...book, authorId: authorRes.data.author._id, genreId: genreRes.data.genre._id };
+      await api.post('/api/book/add', newBookData);
       toast.success("Buku berhasil ditambahkan");
-      handleCloseModal();
-      getAllBooks();
-      clearForm();
-      return newBook; // <-- FIX consistent-return
+      handleCloseModal(); getAllBooks(); clearForm();
     } catch (error) {
-      console.log("Error adding book:", error.response?.data || error.message);
       toast.error("Gagal menambahkan buku, silakan coba lagi");
-      return null; // <-- FIX consistent-return
     }
   };
 
   const updateBook = async () => {
     try {
-      if (!book.genreName || !book.authorName) {
-        toast.error("Jenis buku atau nama penulis tidak boleh kosong.");
-        return null; // <-- FIX consistent-return
-      }
-      
+      if (!book.genreName || !book.authorName) return toast.error("Jenis buku atau nama penulis tidak boleh kosong.");
       const authorRes = await api.post("/api/author/findOrCreate", { name: book.authorName.trim() });
       const genreRes = await api.post("/api/genre/findOrCreate", { name: book.genreName.trim() });
-
       const updatedBookData = { ...book, authorId: authorRes.data.author._id, genreId: genreRes.data.genre._id };
-
-      const response = await api.put(`/api/book/update/${selectedBookId}`, updatedBookData);
+      await api.put(`/api/book/update/${selectedBookId}`, updatedBookData);
       toast.success("Buku berhasil diperbarui");
-      handleCloseModal();
-      handleCloseMenu();
-      getAllBooks();
-      clearForm();
-      return response.data; // <-- FIX consistent-return
+      handleCloseModal(); handleCloseMenu(); getAllBooks(); clearForm();
     } catch (error) {
-      console.log(error);
       toast.error("Gagal memperbarui buku, silakan coba lagi");
-      return null; // <-- FIX consistent-return
     }
   };
 
   const deleteBook = (bookId) => {
     api.delete(`/api/book/delete/${bookId}`)
-      .then(() => {
-        toast.success("Buku berhasil dihapus");
-        handleCloseDialog();
-        handleCloseMenu();
-        getAllBooks();
-      })
+      .then(() => { toast.success("Buku berhasil dihapus"); handleCloseDialog(); handleCloseMenu(); getAllBooks(); })
       .catch(() => toast.error("Gagal menghapus buku, silakan coba lagi"));
   };
   
   const fetchGoogleBooks = useCallback(() => {
     if (!googleQuery) return;
-    axios.get("https://www.googleapis.com/books/v1/volumes", { params: { q: googleQuery, maxResults: 10 } }) // <-- 'axios' sudah terdefinisi sekarang
+    axios.get("https://www.googleapis.com/books/v1/volumes", { params: { q: googleQuery, maxResults: 10 } })
       .then((res) => setGoogleBooks(res.data.items || []))
       .catch(() => toast.error("Gagal mengambil data dari Google Books"));
   }, [googleQuery]);
   
-  useEffect(() => {
-    getAllBooks();
-  }, [getAllBooks]);
+  useEffect(() => { getAllBooks(); }, [getAllBooks]);
+  useEffect(() => { fetchGoogleBooks(); }, [fetchGoogleBooks]);
 
-  useEffect(() => {
-    fetchGoogleBooks();
-  }, [fetchGoogleBooks]);
-
-  // ... Sisa kode Anda dari sini ke bawah sama persis ...
   const getSelectedBookDetails = () => {
     const selectedBook = books.find((element) => element._id === selectedBookId);
-    if (selectedBook) {
-        setBook({ ...selectedBook, authorName: selectedBook.authorId.name, genreName: selectedBook.genreId.name });
-    }
+    if (selectedBook) { setBook({ ...selectedBook, authorName: selectedBook.authorId.name, genreName: selectedBook.genreId.name }); }
   };
   
   const clearForm = () => setBook({ id: "", name: "", isbn: "", summary: "", isAvailable: true, stock: 1, publishYear: "", authorId: "", genreId: "", photoUrl: "", authorName: "", genreName: "" });
@@ -602,8 +555,7 @@ const BookPage = () => {
   const handleUseGoogleBook = (googleBook) => {
     const info = googleBook.volumeInfo;
     const updatedBook = {
-      name: info.title || "",
-      summary: info.description ? `${info.description.substring(0, 150)}...` : "",
+      name: info.title || "", summary: info.description ? `${info.description.substring(0, 150)}...` : "",
       publishYear: info.publishedDate ? info.publishedDate.substring(0, 4) : "",
       isbn: info.industryIdentifiers ? info.industryIdentifiers[0]?.identifier : "",
       photoUrl: info.imageLinks?.thumbnail || "",
@@ -629,31 +581,29 @@ const BookPage = () => {
           {user.isAdmin && <Button variant="contained" onClick={() => { clearForm(); setIsUpdateForm(false); handleOpenModal(); }} startIcon={<Iconify icon="eva:plus-fill" />}>Tambah Buku</Button>}
         </Stack>
         
-        {isTableLoading ? <Grid padding={2} style={{ "textAlign": "center" }}><CircularProgress /></Grid> : (
+        {isTableLoading ? <Grid padding={2} style={{ textAlign: "center" }}><CircularProgress /></Grid> : (
           books.length > 0 ? (
             <Grid container spacing={4}>
-              {books.map((book) => (
-                <Grid key={book._id} item xs={12} sm={6} md={4}>
+              {books.map((b) => (
+                <Grid key={b._id} item xs={12} sm={6} md={4}>
                   <Card>
                     <Box sx={{ pt: '80%', position: 'relative' }}>
                       <Label variant="filled" sx={{ zIndex: 9, top: 16, left: 16, position: 'absolute', textTransform: 'uppercase', color: 'primary.main' }}>
-                        {book.genreId?.name || 'No Genre'}
+                        {b.genreId?.name || 'No Genre'}
                       </Label>
                       {user.isAdmin && (
-                        <Label variant="filled" sx={{ zIndex: 9, top: 12, right: 16, position: 'absolute', borderRadius: "100%", width: "30px", height: "30px", color: "white", backgroundColor: "white" }}>
-                          <IconButton size="small" color="primary" onClick={(e) => { setSelectedBookId(book._id); handleOpenMenu(e); }}>
-                            <Iconify icon={'eva:more-vertical-fill'} />
-                          </IconButton>
-                        </Label>
+                        <IconButton size="small" sx={{ zIndex: 9, top: 12, right: 12, position: 'absolute', bgcolor: 'background.paper' }} onClick={(e) => { setSelectedBookId(b._id); handleOpenMenu(e); }}>
+                          <Iconify icon={'eva:more-vertical-fill'} />
+                        </IconButton>
                       )}
-                      <StyledBookImage alt={book.name} src={book.photoUrl || "https://i.ibb.co/g9fP9vQ/download-4.jpg"} />
+                      <StyledBookImage alt={b.name} src={b.photoUrl || "https://i.ibb.co/g9fP9vQ/download-4.jpg"} />
                     </Box>
                     <Stack spacing={1} sx={{ p: 2 }}>
-                      <Typography textAlign="center" variant="h5" margin={0} noWrap>{book.name}</Typography>
-                      <Typography variant="subtitle1" sx={{ color: "#888888" }} paddingBottom={1} noWrap textAlign="center">{book.authorId?.name || 'No Author'}</Typography>
-                      <Label color={book.isAvailable ? "success" : "error"} sx={{ padding: 2 }}>{book.isAvailable ? 'Available' : 'Not available'}</Label>
-                      <Typography variant="subtitle2" textAlign="center" paddingTop={1}>ISBN: {book.isbn}</Typography>
-                      <Typography variant="subtitle2" textAlign="center" paddingTop={1}>Stock: {book.stock}</Typography>
+                      <Typography textAlign="center" variant="h5" margin={0} noWrap>{b.name}</Typography>
+                      <Typography variant="subtitle1" sx={{ color: "text.secondary" }} paddingBottom={1} noWrap textAlign="center">{b.authorId?.name || 'No Author'}</Typography>
+                      <Label color={b.isAvailable ? "success" : "error"} sx={{ padding: 2 }}>{b.isAvailable ? 'Available' : 'Not available'}</Label>
+                      <Typography variant="subtitle2" textAlign="center" paddingTop={1}>ISBN: {b.isbn}</Typography>
+                      <Typography variant="subtitle2" textAlign="center">Stok: {b.stock}</Typography>
                     </Stack>
                   </Card>
                 </Grid>
@@ -692,7 +642,6 @@ const BookPage = () => {
           <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />Delete
         </MenuItem>
       </Popover>
-
       <BookForm isUpdateForm={isUpdateForm} isModalOpen={isModalOpen} handleCloseModal={handleCloseModal} id={selectedBookId} book={book} setBook={setBook} handleAddBook={addBook} handleUpdateBook={updateBook} />
       <BookDialog isDialogOpen={isDialogOpen} bookId={selectedBookId} handleDeleteBook={deleteBook} handleCloseDialog={handleCloseDialog} />
     </>
