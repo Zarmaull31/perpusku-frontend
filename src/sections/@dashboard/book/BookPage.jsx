@@ -461,9 +461,10 @@ import {
   MenuItem, Popover, Stack, Typography, TextField, Alert
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import axios from "axios"; // <-- TAMBAHKAN KEMBALI IMPORT INI
 
 import { useAuth } from "../../../hooks/useAuth";
-import api from "../../../utils/api"; // <-- GUNAKAN INI
+import api from "../../../utils/api"; 
 import Label from "../../../components/label";
 import BookDialog from "./BookDialog";
 import BookForm from "./BookForm";
@@ -479,6 +480,7 @@ const StyledBookImage = styled("img")({
 
 const BookPage = () => {
   const { user } = useAuth();
+  // ... (semua state Anda tetap sama)
   const [book, setBook] = useState({ id: "", name: "", isbn: "", summary: "", isAvailable: true, stock: 1, publishYear: "", authorId: "", genreId: "", photoUrl: "", authorName: "", genreName: "" });
   const [books, setBooks] = useState([]);
   const [selectedBookId, setSelectedBookId] = useState(null);
@@ -489,6 +491,7 @@ const BookPage = () => {
   const [isUpdateForm, setIsUpdateForm] = useState(false);
   const [googleQuery, setGoogleQuery] = useState("");
   const [googleBooks, setGoogleBooks] = useState([]);
+
 
   const getAllBooks = useCallback(() => {
     setIsTableLoading(true);
@@ -505,7 +508,10 @@ const BookPage = () => {
 
   const addBook = async () => {
     try {
-      if (!book.genreName || !book.authorName) return toast.error("Jenis buku atau nama penulis tidak boleh kosong.");
+      if (!book.genreName || !book.authorName) {
+        toast.error("Jenis buku atau nama penulis tidak boleh kosong.");
+        return null; // <-- FIX consistent-return
+      }
       
       const authorRes = await api.post("/api/author/findOrCreate", { name: book.authorName.trim() });
       const genreRes = await api.post("/api/genre/findOrCreate", { name: book.genreName.trim() });
@@ -517,30 +523,37 @@ const BookPage = () => {
       handleCloseModal();
       getAllBooks();
       clearForm();
+      return newBook; // <-- FIX consistent-return
     } catch (error) {
       console.log("Error adding book:", error.response?.data || error.message);
       toast.error("Gagal menambahkan buku, silakan coba lagi");
+      return null; // <-- FIX consistent-return
     }
   };
 
   const updateBook = async () => {
     try {
-      if (!book.genreName || !book.authorName) return toast.error("Jenis buku atau nama penulis tidak boleh kosong.");
+      if (!book.genreName || !book.authorName) {
+        toast.error("Jenis buku atau nama penulis tidak boleh kosong.");
+        return null; // <-- FIX consistent-return
+      }
       
       const authorRes = await api.post("/api/author/findOrCreate", { name: book.authorName.trim() });
       const genreRes = await api.post("/api/genre/findOrCreate", { name: book.genreName.trim() });
 
       const updatedBookData = { ...book, authorId: authorRes.data.author._id, genreId: genreRes.data.genre._id };
 
-      await api.put(`/api/book/update/${selectedBookId}`, updatedBookData);
+      const response = await api.put(`/api/book/update/${selectedBookId}`, updatedBookData);
       toast.success("Buku berhasil diperbarui");
       handleCloseModal();
       handleCloseMenu();
       getAllBooks();
       clearForm();
+      return response.data; // <-- FIX consistent-return
     } catch (error) {
       console.log(error);
       toast.error("Gagal memperbarui buku, silakan coba lagi");
+      return null; // <-- FIX consistent-return
     }
   };
 
@@ -557,7 +570,7 @@ const BookPage = () => {
   
   const fetchGoogleBooks = useCallback(() => {
     if (!googleQuery) return;
-    axios.get("https://www.googleapis.com/books/v1/volumes", { params: { q: googleQuery, maxResults: 10 } })
+    axios.get("https://www.googleapis.com/books/v1/volumes", { params: { q: googleQuery, maxResults: 10 } }) // <-- 'axios' sudah terdefinisi sekarang
       .then((res) => setGoogleBooks(res.data.items || []))
       .catch(() => toast.error("Gagal mengambil data dari Google Books"));
   }, [googleQuery]);
@@ -570,6 +583,7 @@ const BookPage = () => {
     fetchGoogleBooks();
   }, [fetchGoogleBooks]);
 
+  // ... Sisa kode Anda dari sini ke bawah sama persis ...
   const getSelectedBookDetails = () => {
     const selectedBook = books.find((element) => element._id === selectedBookId);
     if (selectedBook) {
