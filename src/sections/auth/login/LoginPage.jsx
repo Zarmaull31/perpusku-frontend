@@ -113,7 +113,7 @@
 
 
 // File: src/pages/LoginPage.jsx (Versi FINAL)
-// File: LoginPage.jsx (Versi FINAL FIX)
+// File: client/src/pages/LoginPage.jsx (Versi Final)
 
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
@@ -121,16 +121,13 @@ import toast from 'react-hot-toast';
 import { styled } from '@mui/material/styles';
 import { Container, Typography } from '@mui/material';
 
-// --- INI DIA PERBAIKAN PATH-NYA ---
-import api from '../../../utils/api'; 
-import { useAuth } from '../../../hooks/useAuth';
-import Logo from '../../../components/logo';
-import LoginForm from './LoginForm'; // Menggunakan path yang lebih eksplisit
+import api from '../utils/api';
+import { useAuth } from '../hooks/useAuth';
+import Logo from '../components/logo';
+import { LoginForm } from '../sections/auth/login';
 
 const StyledRoot = styled('div')(({ theme }) => ({
-  [theme.breakpoints.up('md')]: {
-    display: 'flex',
-  },
+  [theme.breakpoints.up('md')]: { display: 'flex' },
 }));
 
 const StyledContent = styled('div')(({ theme }) => ({
@@ -147,12 +144,12 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const { login, user } = useAuth();
 
+  // Redirect jika user sudah login
   if (user) {
-    // Arahkan langsung jika sudah login
     return navigate(user.isAdmin ? '/dashboard/app' : '/dashboard/member', { replace: true });
   }
 
-  const loginUser = async (email, password) => {
+  const handleLogin = async (email, password) => {
     if (!email || !password) {
       toast.error("Email dan password harus diisi.");
       return;
@@ -178,7 +175,6 @@ export default function LoginPage() {
       <Helmet>
         <title> Login | Perpusku </title>
       </Helmet>
-
       <StyledRoot>
         <Container maxWidth="sm">
           <StyledContent>
@@ -190,7 +186,8 @@ export default function LoginPage() {
               Login
             </Typography>
             
-            <LoginForm onLogin={loginUser} />
+            {/* KUNCI PERBAIKAN: Mengirim fungsi 'handleLogin' melalui props 'onLogin' */}
+            <LoginForm onLogin={handleLogin} />
           </StyledContent>
         </Container>
       </StyledRoot>
