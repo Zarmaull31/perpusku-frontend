@@ -113,33 +113,24 @@
 
 
 // File: src/pages/LoginPage.jsx (Versi FINAL)
+// File: src/pages/LoginPage.jsx (Versi FINAL-FINAL)
 
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { styled } from '@mui/material/styles';
-import { Link, Container, Typography, Divider, Stack, Button } from '@mui/material';
+import { Container, Typography } from '@mui/material';
 
-import api from '../utils/api'; // <-- 1. GUNAKAN API TERPUSAT
+// INI DIA PERBAIKANNYA
+import api from '../utils/api'; 
 import { useAuth } from '../hooks/useAuth';
-import Iconify from '../components/iconify';
 import Logo from '../components/logo';
-import LoginForm from '../sections/auth/login/LoginForm';
+import { LoginForm } from '../sections/auth/login';
 
 const StyledRoot = styled('div')(({ theme }) => ({
   [theme.breakpoints.up('md')]: {
     display: 'flex',
   },
-}));
-
-const StyledSection = styled('div')(({ theme }) => ({
-  width: '100%',
-  maxWidth: 480,
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  boxShadow: theme.customShadows.card,
-  backgroundColor: theme.palette.background.default,
 }));
 
 const StyledContent = styled('div')(({ theme }) => ({
@@ -154,70 +145,51 @@ const StyledContent = styled('div')(({ theme }) => ({
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, user } = useAuth();
+
+  if (user) {
+    // Arahkan langsung jika sudah login
+    return navigate(user.isAdmin ? '/dashboard/app' : '/dashboard/member', { replace: true });
+  }
 
   const loginUser = async (email, password) => {
     if (!email || !password) {
-      return toast.error("Please enter email and password");
+      toast.error("Email dan password harus diisi.");
+      return;
     }
+    
     try {
-      // 2. Ganti axios.post dengan api.post
       const response = await api.post('/api/auth/login', { email, password });
       
       if (response.data.success) {
-        toast.success('Berhasil login!');
-        login(response.data.user); // Panggil fungsi login dari context
-        navigate('/dashboard', { replace: true });
+        toast.success(`Berhasil Login, Selamat Datang ${response.data.user.name}`);
+        login(response.data.user);
+        navigate(response.data.user.isAdmin ? '/dashboard/app' : '/dashboard/member', { replace: true });
       }
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Login gagal, silakan coba lagi.");
-      console.log(err);
+    } catch (error) {
+      const message = error.response?.data?.message || "Login gagal, periksa kembali email dan password Anda.";
+      toast.error(message);
+      console.error(error);
     }
   };
 
   return (
     <>
       <Helmet>
-        <title> Login </title>
+        <title> Login | Perpusku </title>
       </Helmet>
 
       <StyledRoot>
-        <Logo sx={{ position: 'fixed', top: { xs: 16, sm: 24, md: 40 }, left: { xs: 16, sm: 24, md: 40 }, }} />
-        <StyledSection>
-          <Typography variant="h3" sx={{ px: 5, mt: 10, mb: 5 }}>
-            Hi, Selamat Datang!
-          </Typography>
-          <img src="/assets/illustrations/illustration_login.png" alt="login" />
-        </StyledSection>
-
         <Container maxWidth="sm">
           <StyledContent>
-            <Typography variant="h4" gutterBottom>
-              Sign in to E-Library
+            <Logo sx={{ margin: "0 auto", width: "150px", marginBottom: 2 }} />
+            <Typography variant="h4" sx={{ color: "#666666", fontWeight: "600" }} textAlign="center" gutterBottom>
+              E-Library SMP Mahakarya Jakarta
             </Typography>
-
-            <Typography variant="body2" sx={{ mb: 5 }}>
-              Belum punya akun? {''}
-              <Link variant="subtitle2">Get started</Link>
+            <Typography variant="h3" textAlign="center" gutterBottom paddingBottom={3}>
+              Login
             </Typography>
-
-            <Stack direction="row" spacing={2}>
-              <Button fullWidth size="large" color="inherit" variant="outlined">
-                <Iconify icon="eva:google-fill" color="#DF3E30" width={22} height={22} />
-              </Button>
-              <Button fullWidth size="large" color="inherit" variant="outlined">
-                <Iconify icon="eva:facebook-fill" color="#1877F2" width={22} height={22} />
-              </Button>
-              <Button fullWidth size="large" color="inherit" variant="outlined">
-                <Iconify icon="eva:twitter-fill" color="#1C9CEA" width={22} height={22} />
-              </Button>
-            </Stack>
-
-            <Divider sx={{ my: 3 }}>
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>OR</Typography>
-            </Divider>
             
-            {/* Mengirim fungsi loginUser ke LoginForm */}
             <LoginForm onLogin={loginUser} />
           </StyledContent>
         </Container>
