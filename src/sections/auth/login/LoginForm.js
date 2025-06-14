@@ -60,7 +60,7 @@
 // export default LoginForm
 
 
-// File: client/src/sections/auth/login/LoginForm.js (Versi Final)
+// File: src/sections/auth/login/LoginForm.js
 
 import { useState } from "react";
 import PropTypes from "prop-types";
@@ -68,14 +68,14 @@ import { IconButton, InputAdornment, Stack, TextField } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import Iconify from "../../../components/iconify";
 
-export default function LoginForm({ onLogin }) { // KUNCI PERBAIKAN: Menerima 'onLogin'
+export default function LoginForm({ onLogin }) { // Menerima 'onLogin' dari parent
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault(); // Mencegah form submit me-refresh halaman
-    onLogin(email, password); // Memanggil fungsi dari parent
+    onLogin(email, password); // Memanggil fungsi dari parent dengan data state
   };
 
   return (

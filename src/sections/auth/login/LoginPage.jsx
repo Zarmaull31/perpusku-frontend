@@ -113,7 +113,7 @@
 
 
 // File: src/pages/LoginPage.jsx (Versi FINAL)
-// File: client/src/pages/LoginPage.jsx (Versi Final)
+// File: src/pages/LoginPage.jsx
 
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
@@ -121,13 +121,16 @@ import toast from 'react-hot-toast';
 import { styled } from '@mui/material/styles';
 import { Container, Typography } from '@mui/material';
 
-import api from '../utils/api';
+// --- INI DIA PERBAIKAN PATH-NYA ---
+import api from '../utils/api'; 
 import { useAuth } from '../hooks/useAuth';
 import Logo from '../components/logo';
 import { LoginForm } from '../sections/auth/login';
 
 const StyledRoot = styled('div')(({ theme }) => ({
-  [theme.breakpoints.up('md')]: { display: 'flex' },
+  [theme.breakpoints.up('md')]: {
+    display: 'flex',
+  },
 }));
 
 const StyledContent = styled('div')(({ theme }) => ({
@@ -144,8 +147,8 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const { login, user } = useAuth();
 
-  // Redirect jika user sudah login
   if (user) {
+    // Arahkan langsung jika sudah login
     return navigate(user.isAdmin ? '/dashboard/app' : '/dashboard/member', { replace: true });
   }
 
@@ -175,6 +178,7 @@ export default function LoginPage() {
       <Helmet>
         <title> Login | Perpusku </title>
       </Helmet>
+
       <StyledRoot>
         <Container maxWidth="sm">
           <StyledContent>
@@ -186,7 +190,7 @@ export default function LoginPage() {
               Login
             </Typography>
             
-            {/* KUNCI PERBAIKAN: Mengirim fungsi 'handleLogin' melalui props 'onLogin' */}
+            {/* Mengirim fungsi 'handleLogin' melalui props 'onLogin' */}
             <LoginForm onLogin={handleLogin} />
           </StyledContent>
         </Container>
