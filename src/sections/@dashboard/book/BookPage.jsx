@@ -456,7 +456,7 @@
 import { Helmet } from "react-helmet-async";
 import { useEffect, useState, useCallback } from "react";
 import toast from "react-hot-toast";
-import axios from "axios"; // <-- WAJIB ADA untuk Google Books API
+import axios from "axios";
 import {
   Box, Button, Card, CircularProgress, Container, Grid, IconButton,
   MenuItem, Popover, Stack, Typography, TextField, Alert
@@ -497,29 +497,37 @@ const BookPage = () => {
 
   const addBook = async () => {
     try {
-      if (!book.genreName || !book.authorName) return toast.error("Jenis buku atau nama penulis tidak boleh kosong.");
+      if (!book.genreName || !book.authorName) {
+        return toast.error("Jenis buku atau nama penulis tidak boleh kosong.");
+      }
       const authorRes = await api.post("/api/author/findOrCreate", { name: book.authorName.trim() });
       const genreRes = await api.post("/api/genre/findOrCreate", { name: book.genreName.trim() });
       const newBookData = { ...book, authorId: authorRes.data.author._id, genreId: genreRes.data.genre._id };
-      await api.post('/api/book/add', newBookData);
+      const response = await api.post('/api/book/add', newBookData);
       toast.success("Buku berhasil ditambahkan");
       handleCloseModal(); getAllBooks(); clearForm();
+      return response.data; // <-- Tambahan return
     } catch (error) {
       toast.error("Gagal menambahkan buku, silakan coba lagi");
+      return null; // <-- Tambahan return di blok catch
     }
   };
 
   const updateBook = async () => {
     try {
-      if (!book.genreName || !book.authorName) return toast.error("Jenis buku atau nama penulis tidak boleh kosong.");
+      if (!book.genreName || !book.authorName) {
+        return toast.error("Jenis buku atau nama penulis tidak boleh kosong.");
+      }
       const authorRes = await api.post("/api/author/findOrCreate", { name: book.authorName.trim() });
       const genreRes = await api.post("/api/genre/findOrCreate", { name: book.genreName.trim() });
       const updatedBookData = { ...book, authorId: authorRes.data.author._id, genreId: genreRes.data.genre._id };
-      await api.put(`/api/book/update/${selectedBookId}`, updatedBookData);
+      const response = await api.put(`/api/book/update/${selectedBookId}`, updatedBookData);
       toast.success("Buku berhasil diperbarui");
       handleCloseModal(); handleCloseMenu(); getAllBooks(); clearForm();
+      return response.data; // <-- Tambahan return
     } catch (error) {
       toast.error("Gagal memperbarui buku, silakan coba lagi");
+      return null; // <-- Tambahan return di blok catch
     }
   };
 
