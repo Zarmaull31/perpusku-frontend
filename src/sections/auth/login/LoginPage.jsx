@@ -113,19 +113,19 @@
 
 
 // File: src/pages/LoginPage.jsx (Versi FINAL)
-// File: src/pages/LoginPage.jsx
+// File: src/sections/auth/login/LoginPage.jsx (FINAL FIX)
 
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { styled } from '@mui/material/styles';
-import { Container, Typography } from '@mui/material';
+import { Container, Typography, Link } from '@mui/material';
 
-// --- INI DIA PERBAIKAN PATH-NYA ---
-import api from '../utils/api'; 
-import { useAuth } from '../hooks/useAuth';
-import Logo from '../components/logo';
-import { LoginForm } from '../sections/auth/login';
+// --- INI PERBAIKAN PATH YANG BENAR ---
+import api from '../../../utils/api'; 
+import { useAuth } from '../../../hooks/useAuth';
+import Logo from '../../../components/logo';
+import { LoginForm } from './index'; // index.js di folder yang sama akan mengekspor LoginForm
 
 const StyledRoot = styled('div')(({ theme }) => ({
   [theme.breakpoints.up('md')]: {
@@ -148,7 +148,7 @@ export default function LoginPage() {
   const { login, user } = useAuth();
 
   if (user) {
-    // Arahkan langsung jika sudah login
+    // Redirect jika user sudah login
     return navigate(user.isAdmin ? '/dashboard/app' : '/dashboard/member', { replace: true });
   }
 
@@ -190,7 +190,6 @@ export default function LoginPage() {
               Login
             </Typography>
             
-            {/* Mengirim fungsi 'handleLogin' melalui props 'onLogin' */}
             <LoginForm onLogin={handleLogin} />
           </StyledContent>
         </Container>
